@@ -18,6 +18,9 @@ from constants import USE_LSTM
 LOG_INTERVAL = 100
 PERFORMANCE_LOG_INTERVAL = 1000
 
+def ale_game_state(thread_index):
+    return GameState(113 * thread_index)
+
 class A3CTrainingThread(object):
   def __init__(self,
                thread_index,
@@ -26,7 +29,8 @@ class A3CTrainingThread(object):
                learning_rate_input,
                grad_applier,
                max_global_time_step,
-               device):
+               device,
+               game_function=ale_game_state):
 
     self.thread_index = thread_index
     self.learning_rate_input = learning_rate_input
@@ -53,7 +57,7 @@ class A3CTrainingThread(object):
 
     self.sync = self.local_network.sync_from(global_network)
     
-    self.game_state = GameState(113 * thread_index)
+    self.game_state = game_function(thread_index)
     
     self.local_t = 0
 
