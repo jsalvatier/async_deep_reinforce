@@ -10,7 +10,7 @@ import os
 import time
 
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
-from a3c_training_thread import A3CTrainingThread
+from a3c_training_thread import A3CTrainingThread, ale_game_state
 from rmsprop_applier import RMSPropApplier
 
 from constants import ACTION_SIZE
@@ -92,7 +92,7 @@ for i in range(PARALLEL_SIZE):
                                       learning_rate_input,
                                       grad_applier, MAX_TIME_STEP,
                                       device = device,
-                                      game_function=None)
+                                      game_function=ale_game_state)
   training_threads.append(training_thread)
 
 # prepare session
