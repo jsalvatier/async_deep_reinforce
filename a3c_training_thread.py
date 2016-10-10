@@ -30,16 +30,14 @@ class A3CTrainingThread(object):
                grad_applier,
                max_global_time_step,
                device,
-               game_function=ale_game_state):
+               game_function=ale_game_state, 
+               local_network=None):
 
     self.thread_index = thread_index
     self.learning_rate_input = learning_rate_input
     self.max_global_time_step = max_global_time_step
 
-    if USE_LSTM:
-      self.local_network = GameACLSTMNetwork(ACTION_SIZE, thread_index, device)
-    else:
-      self.local_network = GameACFFNetwork(ACTION_SIZE, device)
+    self.local_network = local_network()
 
     self.local_network.prepare_loss(ENTROPY_BETA)
 

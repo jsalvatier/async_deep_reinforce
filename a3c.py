@@ -46,11 +46,14 @@ global_t = 0
 
 stop_requested = False
 
-if USE_LSTM:
-  global_network = GameACLSTMNetwork(ACTION_SIZE, -1, device)
-else:
-  global_network = GameACFFNetwork(ACTION_SIZE, device)
+def make_network():
+    if USE_LSTM:
+        return GameACLSTMNetwork(ACTION_SIZE, -1, device)
+    else:
+        return GameACFFNetwork(ACTION_SIZE, device)
 
+
+global_network = make_network()
 
 training_threads = []
 
@@ -92,7 +95,8 @@ for i in range(PARALLEL_SIZE):
                                       learning_rate_input,
                                       grad_applier, MAX_TIME_STEP,
                                       device = device,
-                                      game_function=ale_game_state)
+                                      game_function=ale_game_state,
+                                      local_network=make_network)
   training_threads.append(training_thread)
 
 # prepare session
