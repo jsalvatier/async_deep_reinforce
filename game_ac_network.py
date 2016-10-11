@@ -102,10 +102,10 @@ class GameACFCNetwork(GameACNetwork):
                ):
     GameACNetwork.__init__(self, action_size, device)
 
-    nfeatures = 4
-    repeated = 4
+    nfeatures = 1
+    repeated = 5  # features
     ninputs = nfeatures * repeated
-    hidden = 20
+    hidden = 10 # 20
     
     with tf.device(self._device):
       self.W_fc1 = self._fc_weight_variable([ninputs, hidden])
@@ -137,6 +137,7 @@ class GameACFCNetwork(GameACNetwork):
 
   def run_policy_and_value(self, sess, s_t):
     pi_out, v_out = sess.run( [self.pi, self.v], feed_dict = {self.s : [s_t]} )
+    # print("s: %s" % s_t)
     return (pi_out[0], v_out[0])
 
   def run_policy(self, sess, s_t):

@@ -38,9 +38,9 @@ device = "/cpu:0"
 if USE_GPU:
   device = "/gpu:0"
 
-initial_learning_rate = log_uniform(INITIAL_ALPHA_LOW,
-                                    INITIAL_ALPHA_HIGH,
-                                    INITIAL_ALPHA_LOG_RATE)
+initial_learning_rate = 0.001 # log_uniform(INITIAL_ALPHA_LOW,
+                            #        INITIAL_ALPHA_HIGH,
+                            #        INITIAL_ALPHA_LOG_RATE)
 
 global_t = 0
 
