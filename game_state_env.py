@@ -14,7 +14,7 @@ class GameStateGymEnv(object):
     self.order = dic.keys()
     self.order.sort()
 
-    x_t = np.array([dic[key] for key in self.order])
+    x_t = np.array([dic[key] for key in self.order])/50.
     
     self.reward = 0
     self.terminal = False
@@ -23,7 +23,7 @@ class GameStateGymEnv(object):
   def process(self, action):
     _, r, done, _ = self.env.step(action)
     dic = self.env.game_state.game.getGameState()
-    x_t = np.array([dic[key] for key in self.order])
+    x_t = np.array([dic[key] for key in self.order])/50.
 
     self.reward = r
     self.terminal = done

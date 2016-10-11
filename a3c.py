@@ -70,14 +70,14 @@ grad_applier = RMSPropApplier(learning_rate = learning_rate_input,
                               device = device)
 
 import gym_ple
-def register_game(game):
+def register_game(game, display=False):
     from gym.envs.registration import register
     from gym_ple.ple_env import PLEEnv
 
     register(
         id='PLE-{}-v0'.format(game),
         entry_point='gym_ple:PLEEnv',
-        kwargs={'game_name': game, 'display_screen':False},
+        kwargs={'game_name': game, 'display_screen':display},
         timestep_limit=10000,
         nondeterministic=False,
     )

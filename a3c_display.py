@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 from game_state import GameState
-from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
+from game_ac_network import GameACFFNetwork, GameACLSTMNetwork, GameACFCNetwork
 from a3c_training_thread import A3CTrainingThread
 from rmsprop_applier import RMSPropApplier
 
@@ -35,10 +35,13 @@ def choose_action(pi_values):
 # use CPU for display tool
 device = "/cpu:0"
 
+"""
 if USE_LSTM:
   global_network = GameACLSTMNetwork(ACTION_SIZE, -1, device)
 else:
   global_network = GameACFFNetwork(ACTION_SIZE, device)
+"""
+global_network = GameACFCNetwork(ACTION_SIZE, device)
 
 learning_rate_input = tf.placeholder("float")
 
@@ -70,7 +73,26 @@ if checkpoint and checkpoint.model_checkpoint_path:
 else:
   print("Could not find old checkpoint")
 
-game_state = GameState(0, display=True, no_op_max=0)
+#game_state = GameState(0, display=True, no_op_max=0)
+import gym_ple
+def register_game(game, display=False):
+    from gym.envs.registration import register
+    from gym_ple.ple_env import PLEEnv
+
+    register(
+        id='PLE-{}-v0'.format(game),
+        entry_point='gym_ple:PLEEnv',
+        kwargs={'game_name': game, 'display_screen':display},
+        timestep_limit=10000)
+register_game('Catcher', True)
+def get_game(thread_index):
+    from game_state_env import GameStateGymEnv
+    import gym
+
+    env = gym.make('PLE-Catcher-v0')
+    return GameStateGymEnv(env)
+
+game_state = get_game(0)
 
 while True:
   pi_values = global_network.run_policy(sess, game_state.s_t)
@@ -79,4 +101,6 @@ while True:
   game_state.process(action)
 
   game_state.update()
+  if game_state.terminal:
+      game_state.reset()
 

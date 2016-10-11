@@ -105,11 +105,14 @@ class GameACFCNetwork(GameACNetwork):
     nfeatures = 4
     repeated = 4
     ninputs = nfeatures * repeated
-    hidden = 256
+    hidden = 20
     
     with tf.device(self._device):
       self.W_fc1 = self._fc_weight_variable([ninputs, hidden])
       self.b_fc1 = self._fc_bias_variable([hidden], ninputs)
+
+      self.W_fc11 = self._fc_weight_variable([hidden, hidden])
+      self.b_fc11 = self._fc_bias_variable([hidden], hidden)
 
       # weight for policy output layer
       self.W_fc2 = self._fc_weight_variable([hidden, action_size])
@@ -124,11 +127,12 @@ class GameACFCNetwork(GameACNetwork):
 
       h_conv2_flat = tf.reshape(self.s, [-1, nfeatures*repeated])
       h_fc1 = tf.nn.relu(tf.matmul(h_conv2_flat, self.W_fc1) + self.b_fc1)
+      h_fc2 = tf.nn.relu(tf.matmul(h_fc1, self.W_fc11) + self.b_fc11)
 
       # policy (output)
-      self.pi = tf.nn.softmax(tf.matmul(h_fc1, self.W_fc2) + self.b_fc2)
+      self.pi = tf.nn.softmax(tf.matmul(h_fc2, self.W_fc2) + self.b_fc2)
       # value (output)
-      v_ = tf.matmul(h_fc1, self.W_fc3) + self.b_fc3
+      v_ = tf.matmul(h_fc2, self.W_fc3) + self.b_fc3
       self.v = tf.reshape( v_, [-1] )
 
   def run_policy_and_value(self, sess, s_t):
