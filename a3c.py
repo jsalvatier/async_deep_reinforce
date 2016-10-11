@@ -9,7 +9,7 @@ import math
 import os
 import time
 
-from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
+from game_ac_network import GameACFFNetwork, GameACLSTMNetwork, GameACFCNetwork
 from a3c_training_thread import A3CTrainingThread, ale_game_state
 from rmsprop_applier import RMSPropApplier
 
@@ -52,6 +52,9 @@ def make_network():
     else:
         return GameACFFNetwork(ACTION_SIZE, device)
 
+def make_network():
+    return GameACFCNetwork(ACTION_SIZE, device)
+
 
 global_network = make_network()
 
@@ -66,11 +69,11 @@ grad_applier = RMSPropApplier(learning_rate = learning_rate_input,
                               clip_norm = GRAD_NORM_CLIP,
                               device = device)
 
-def register_pong():
+import gym_ple
+def register_game(game):
     from gym.envs.registration import register
     from gym_ple.ple_env import PLEEnv
 
-    game = 'Pong'
     register(
         id='PLE-{}-v0'.format(game),
         entry_point='gym_ple:PLEEnv',
@@ -78,16 +81,14 @@ def register_pong():
         timestep_limit=10000,
         nondeterministic=False,
     )
+#register_game('Catcher')
 
-register_pong()
 
-
-def ple_pong(thread_index):
+def get_game(thread_index):
     from game_state_env import GameStateGymEnv
     import gym
 
-    #env = gym.make('PLE-Pong-v0')
-    env = gym.make('Pong-v0')
+    env = gym.make('Catcher-v0')
     return GameStateGymEnv(env)
 
 for i in range(PARALLEL_SIZE):
@@ -95,7 +96,7 @@ for i in range(PARALLEL_SIZE):
                                       learning_rate_input,
                                       grad_applier, MAX_TIME_STEP,
                                       device = device,
-                                      game_function=ale_game_state,
+                                      game_function=get_game,
                                       local_network=make_network)
   training_threads.append(training_thread)
 

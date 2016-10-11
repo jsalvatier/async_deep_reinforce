@@ -95,6 +95,60 @@ class GameACNetwork(object):
     return tf.nn.conv2d(x, W, strides = [1, stride, stride, 1], padding = "VALID")
 
 # Actor-Critic FF Network
+class GameACFCNetwork(GameACNetwork):
+  def __init__(self,
+               action_size,
+               device="/cpu:0",
+               ):
+    GameACNetwork.__init__(self, action_size, device)
+
+    nfeatures = 4
+    repeated = 4
+    ninputs = nfeatures * repeated
+    hidden = 256
+    
+    with tf.device(self._device):
+      self.W_fc1 = self._fc_weight_variable([ninputs, hidden])
+      self.b_fc1 = self._fc_bias_variable([hidden], ninputs)
+
+      # weight for policy output layer
+      self.W_fc2 = self._fc_weight_variable([hidden, action_size])
+      self.b_fc2 = self._fc_bias_variable([action_size], hidden)
+
+      # weight for value output layer
+      self.W_fc3 = self._fc_weight_variable([hidden, 1])
+      self.b_fc3 = self._fc_bias_variable([1], hidden)
+
+      # state (input)
+      self.s = tf.placeholder("float", [None, nfeatures, repeated])
+
+      h_conv2_flat = tf.reshape(self.s, [-1, nfeatures*repeated])
+      h_fc1 = tf.nn.relu(tf.matmul(h_conv2_flat, self.W_fc1) + self.b_fc1)
+
+      # policy (output)
+      self.pi = tf.nn.softmax(tf.matmul(h_fc1, self.W_fc2) + self.b_fc2)
+      # value (output)
+      v_ = tf.matmul(h_fc1, self.W_fc3) + self.b_fc3
+      self.v = tf.reshape( v_, [-1] )
+
+  def run_policy_and_value(self, sess, s_t):
+    pi_out, v_out = sess.run( [self.pi, self.v], feed_dict = {self.s : [s_t]} )
+    return (pi_out[0], v_out[0])
+
+  def run_policy(self, sess, s_t):
+    pi_out = sess.run( self.pi, feed_dict = {self.s : [s_t]} )
+    return pi_out[0]
+
+  def run_value(self, sess, s_t):
+    v_out = sess.run( self.v, feed_dict = {self.s : [s_t]} )
+    return v_out[0]
+
+  def get_vars(self):
+    return [ self.W_fc1, self.b_fc1,
+            self.W_fc2, self.b_fc2,
+            self.W_fc3, self.b_fc3]
+
+# Actor-Critic FF Network
 class GameACFFNetwork(GameACNetwork):
   def __init__(self,
                action_size,
