@@ -82,14 +82,6 @@ def register_pong():
 register_pong()
 
 
-def ple_pong(thread_index):
-    from game_state_env import GameStateGymEnv
-    import gym
-
-    #env = gym.make('PLE-Pong-v0')
-    env = gym.make('Pong-v0')
-    return GameStateGymEnv(env)
-
 for i in range(PARALLEL_SIZE):
   training_thread = A3CTrainingThread(i, global_network, initial_learning_rate,
                                       learning_rate_input,
