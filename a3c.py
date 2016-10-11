@@ -9,11 +9,11 @@ import math
 import os
 import time
 
-from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
-from a3c_training_thread import A3CTrainingThread, ale_game_state
+from pong import make_pong_network, pong_game_function
+
+from a3c_training_thread import A3CTrainingThread
 from rmsprop_applier import RMSPropApplier
 
-from constants import ACTION_SIZE
 from constants import PARALLEL_SIZE
 from constants import INITIAL_ALPHA_LOW
 from constants import INITIAL_ALPHA_HIGH
@@ -25,7 +25,6 @@ from constants import RMSP_EPSILON
 from constants import RMSP_ALPHA
 from constants import GRAD_NORM_CLIP
 from constants import USE_GPU
-from constants import USE_LSTM
 
 
 def log_uniform(lo, hi, rate):
@@ -46,14 +45,16 @@ global_t = 0
 
 stop_requested = False
 
-def make_network():
-    if USE_LSTM:
-        return GameACLSTMNetwork(ACTION_SIZE, -1, device)
-    else:
-        return GameACFFNetwork(ACTION_SIZE, device)
 
+# --------------------------------------------------------------------
+# Application-specific settings
 
-global_network = make_network()
+global_network = make_pong_network(device)
+local_network = lambda: make_pong_network(device)
+game_function = pong_game_function
+
+#--------------------------------------------------------------------
+
 
 training_threads = []
 
@@ -66,20 +67,6 @@ grad_applier = RMSPropApplier(learning_rate = learning_rate_input,
                               clip_norm = GRAD_NORM_CLIP,
                               device = device)
 
-def register_pong():
-    from gym.envs.registration import register
-    from gym_ple.ple_env import PLEEnv
-
-    game = 'Pong'
-    register(
-        id='PLE-{}-v0'.format(game),
-        entry_point='gym_ple:PLEEnv',
-        kwargs={'game_name': game, 'display_screen':False},
-        timestep_limit=10000,
-        nondeterministic=False,
-    )
-
-register_pong()
 
 
 for i in range(PARALLEL_SIZE):
@@ -87,8 +74,8 @@ for i in range(PARALLEL_SIZE):
                                       learning_rate_input,
                                       grad_applier, MAX_TIME_STEP,
                                       device = device,
-                                      game_function=ale_game_state,
-                                      local_network=make_network)
+                                      game_function=game_function,
+                                      local_network=local_network)
   training_threads.append(training_thread)
 
 # prepare session
